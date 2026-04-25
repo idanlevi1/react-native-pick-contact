@@ -1,0 +1,112 @@
+{
+  "name": "react-native-pick-contact",
+  "version": "0.0.1",
+  "description": "Zero-permission contact picker for React Native. Uses native OS pickers — no READ_CONTACTS needed.",
+  "main": "lib/commonjs/index",
+  "module": "lib/module/index",
+  "types": "lib/typescript/src/index.d.ts",
+  "react-native": "src/index",
+  "source": "src/index",
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "react-native-pick-contact.podspec",
+    "!android/build",
+    "!ios/build",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__"
+  ],
+  "scripts": {
+    "typescript": "tsc --noEmit",
+    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "prepare": "bob build",
+    "release": "release-it"
+  },
+  "keywords": [
+    "react-native",
+    "ios",
+    "android",
+    "contacts",
+    "contact-picker",
+    "privacy",
+    "zero-permission",
+    "turbomodule"
+  ],
+  "repository": "https://github.com/idanlevi1/react-native-pick-contact",
+  "author": "idan levi <idanlevi2@gmail.com> (https://github.com/idanlevi1)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/idanlevi1/react-native-pick-contact/issues"
+  },
+  "homepage": "https://github.com/idanlevi1/react-native-pick-contact#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "devDependencies": {
+    "@react-native/eslint-config": "^0.84.0",
+    "@types/react": "^19.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.0",
+    "react": "^19.0.0",
+    "react-native": "^0.84.0",
+    "react-native-builder-bob": "^0.35.0",
+    "release-it": "^17.0.0",
+    "typescript": "^5.5.0"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-native": ">=0.76.0"
+  },
+  "codegenConfig": {
+    "name": "RNPickContactSpec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "com.pickcontact"
+    }
+  },
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release ${version}",
+      "tagName": "v${version}"
+    },
+    "npm": {
+      "publish": true
+    },
+    "github": {
+      "release": true
+    }
+  },
+  "eslintConfig": {
+    "root": true,
+    "extends": [
+      "@react-native",
+      "prettier"
+    ]
+  },
+  "prettier": {
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "useTabs": false
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      "commonjs",
+      "module",
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
+  }
+}

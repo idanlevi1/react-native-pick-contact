@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="com.pickcontact">
+  <!-- Intentionally empty: no permissions required. -->
+  <!-- The system contact picker grants a temporary URI permission -->
+  <!-- for the selected contact only. -->
+</manifest>
