@@ -1,11 +1,42 @@
 # react-native-pick-contact
 
 [![npm version](https://img.shields.io/npm/v/react-native-pick-contact.svg)](https://www.npmjs.com/package/react-native-pick-contact)
-[![license](https://img.shields.io/npm/l/react-native-pick-contact.svg)](https://github.com/idanlevi1/react-native-pick-contact/blob/main/LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/idanlevi1/react-native-pick-contact/blob/main/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/idanlevi1/react-native-pick-contact?style=social)](https://github.com/idanlevi1/react-native-pick-contact)
 ![platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20Android-lightgrey.svg)
 ![architecture](https://img.shields.io/badge/architecture-New%20Architecture-blue.svg)
 
 A **zero-permission** contact picker for React Native. Lets the user pick a single contact (name + phone) via the native OS picker — without ever requesting `READ_CONTACTS` or Contacts authorization.
+
+> **Look mom, no permission dialogs! 🚀**
+
+```
+  Traditional library                    react-native-pick-contact
+  ─────────────────────                  ─────────────────────────
+  1. User taps "Pick Contact"            1. User taps "Pick Contact"
+  2. 🔒 Permission dialog appears        2. 📱 Native picker opens instantly
+  3. 😬 User hesitates / denies          3. User picks a contact
+  4. ...or grants full address book       4. ✅ App receives name + phone
+  5. App reads entire contact list
+  6. App finds the one contact
+
+  Permissions: READ_CONTACTS             Permissions: NONE
+  Data exposed: EVERYTHING               Data exposed: 1 contact
+```
+
+---
+
+## New Architecture Ready
+
+Many popular contact libraries are **broken on React Native 0.76+** because they rely on the legacy Bridge and haven't migrated to TurboModules.
+
+**react-native-pick-contact** is built from the ground up for the New Architecture:
+
+- **TurboModule** native module (C++ codegen on iOS, Java codegen on Android)
+- **Codegen** type-safe specs — no manual bridging, no `NativeModules["..."]` hacks
+- Works out of the box with **React Native 0.76+** — just install and go
+
+If you're migrating to the New Architecture and your current contact library broke, this is a drop-in replacement.
 
 ---
 
@@ -152,6 +183,14 @@ This can happen if the root view controller is not fully presented yet (e.g., ca
 ### `E_NO_ACTIVITY` on Android
 
 This occurs when `pickContact()` is called while no Activity is in the foreground (e.g., from a background task or headless JS). Ensure you only call it from a user-facing screen.
+
+---
+
+## Contributing
+
+Found a bug? Have a feature idea? [Open an issue](https://github.com/idanlevi1/react-native-pick-contact/issues) or submit a PR — contributions are welcome!
+
+If this library saved you from dealing with `READ_CONTACTS` permissions, consider giving it a [star on GitHub](https://github.com/idanlevi1/react-native-pick-contact) — it helps other developers discover the zero-permission approach.
 
 ---
 
