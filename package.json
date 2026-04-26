@@ -1,6 +1,6 @@
 {
   "name": "react-native-pick-contact",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Zero-permission contact picker for React Native. Uses native OS pickers — no READ_CONTACTS needed.",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
