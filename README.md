@@ -88,7 +88,7 @@ No additional configuration needed. No `Info.plist` keys required.
 
 ### Android
 
-No additional configuration needed. No permissions to add to `AndroidManifest.xml`.
+No additional configuration needed. The library declares `READ_CONTACTS` in its manifest as a fallback for Android 16+ devices where the zero-permission approach doesn't cover phone data (see [Android 16+ fallback](#android-16-samsung-fallback)). This permission is only requested at runtime when needed — most users will never see a prompt.
 
 ---
 
@@ -153,6 +153,18 @@ type Contact = {
 - On iOS, contacts without phone numbers are **grayed out** in the picker (cannot be selected).
 - On Android, the selected phone number comes from the contact's data via a temporary URI permission — no manifest permission needed.
 - The `phone` field returns the **first** phone number. If the contact has no phone numbers, it returns an empty string.
+
+### Android 16+ (Samsung) fallback
+
+On some Android 16+ devices (notably Samsung), the system picker's temporary URI permission does not extend to the phone number data sub-path. When this happens, the library automatically:
+
+1. Detects the empty phone number from the primary (zero-permission) path
+2. Requests `READ_CONTACTS` permission at runtime (one-time OS prompt)
+3. If granted, retrieves the phone number using the contact ID
+
+The `READ_CONTACTS` permission is declared in the library's manifest for this fallback only. On devices where the primary path works (the vast majority), the permission is never requested and the user sees no dialog.
+
+If the user denies the permission, the contact is returned with the name but an empty phone string — no crash.
 
 ---
 

@@ -1,10 +1,13 @@
 package com.pickcontact
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.ContactsContract
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
@@ -88,7 +91,12 @@ class PickContactModule(reactContext: ReactApplicationContext) :
 
           try {
             val result = resolveContact(uri)
-            currentPromise.resolve(result)
+            if (!result.hasKey("phone") || result.getString("phone")?.isEmpty() != false) {
+              // Phone empty — try fallback with READ_CONTACTS permission
+              requestContactsPermissionAndResolvePhone(activity, uri, result, currentPromise)
+            } else {
+              currentPromise.resolve(result)
+            }
           } catch (e: Exception) {
             currentPromise.reject("E_CONTACT_RESOLVE", "Failed to read contact data", e)
           }
@@ -128,28 +136,106 @@ class PickContactModule(reactContext: ReactApplicationContext) :
       result.putString("name", "")
     }
 
-    // Read phone via Data sub-path of the contact URI (no READ_CONTACTS needed)
-    val dataUri = Uri.withAppendedPath(uri, ContactsContract.Contacts.Data.CONTENT_DIRECTORY)
-    resolver.query(
-      dataUri,
-      arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
-      "${ContactsContract.Data.MIMETYPE} = ?",
-      arrayOf(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE),
-      null
-    )?.use { cursor ->
-      if (cursor.moveToFirst()) {
-        result.putString(
-          "phone",
-          cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER)) ?: ""
-        )
-      } else {
-        result.putString("phone", "")
+    // Read phone via Data sub-path (zero-permission approach)
+    try {
+      val dataUri = Uri.withAppendedPath(uri, ContactsContract.Contacts.Data.CONTENT_DIRECTORY)
+      resolver.query(
+        dataUri,
+        arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
+        "${ContactsContract.Data.MIMETYPE} = ?",
+        arrayOf(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE),
+        null
+      )?.use { cursor ->
+        if (cursor.moveToFirst()) {
+          result.putString(
+            "phone",
+            cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER)) ?: ""
+          )
+        }
       }
+    } catch (_: SecurityException) {
+      // Temp URI doesn't cover Data sub-path on some devices (Android 16+ Samsung)
+      // Phone will be empty — caller handles fallback with permission request
     }
+
     if (!result.hasKey("phone")) {
       result.putString("phone", "")
     }
 
     return result
+  }
+
+  // Fallback: request READ_CONTACTS at runtime, then query phone by contact ID.
+  // SECURITY: contactId MUST originate from the system-provided picker URI.
+  private fun requestContactsPermissionAndResolvePhone(
+    activity: ComponentActivity,
+    contactUri: Uri,
+    result: WritableMap,
+    promise: Promise
+  ) {
+    val hasPermission = ContextCompat.checkSelfPermission(
+      activity, Manifest.permission.READ_CONTACTS
+    ) == PackageManager.PERMISSION_GRANTED
+
+    if (hasPermission) {
+      resolvePhoneByContactId(contactUri, result)
+      promise.resolve(result)
+      return
+    }
+
+    activity.runOnUiThread {
+      try {
+        val key = "read_contacts_perm_${System.nanoTime()}"
+        var permLauncher: ActivityResultLauncher<String>? = null
+        permLauncher = activity.activityResultRegistry.register(
+          key, ActivityResultContracts.RequestPermission()
+        ) { granted ->
+          permLauncher?.unregister()
+          if (granted) {
+            resolvePhoneByContactId(contactUri, result)
+          }
+          promise.resolve(result)
+        }
+        permLauncher.launch(Manifest.permission.READ_CONTACTS)
+      } catch (_: Exception) {
+        promise.resolve(result)
+      }
+    }
+  }
+
+  private fun resolvePhoneByContactId(contactUri: Uri, result: WritableMap) {
+    try {
+      val resolver = reactApplicationContext.contentResolver
+      val contactId = getContactId(contactUri, resolver) ?: return
+      resolver.query(
+        ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+        arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
+        "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
+        arrayOf(contactId),
+        null
+      )?.use { cursor ->
+        if (cursor.moveToFirst()) {
+          result.putString(
+            "phone",
+            cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER)) ?: ""
+          )
+        }
+      }
+    } catch (_: SecurityException) {
+      // Permission denied or revoked — phone stays empty
+    }
+  }
+
+  private fun getContactId(uri: Uri, resolver: android.content.ContentResolver): String? {
+    resolver.query(
+      uri,
+      arrayOf(ContactsContract.Contacts._ID),
+      null, null, null
+    )?.use { cursor ->
+      if (cursor.moveToFirst()) {
+        return cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID))
+      }
+    }
+    return null
   }
 }

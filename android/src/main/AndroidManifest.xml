@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="com.pickcontact">
-  <!-- Intentionally empty: no permissions required. -->
-  <!-- The system contact picker grants a temporary URI permission -->
-  <!-- for the selected contact only. -->
+  <!-- Fallback for Android 16+ devices (e.g. Samsung) where the system picker's -->
+  <!-- temporary URI permission doesn't extend to the phone number data sub-path. -->
+  <!-- The primary path still uses zero-permission temp URI; this is only used -->
+  <!-- as a fallback with a runtime permission request when the primary path fails. -->
+  <uses-permission android:name="android.permission.READ_CONTACTS" />
 </manifest>
