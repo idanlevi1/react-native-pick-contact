@@ -31,9 +31,14 @@
     "android",
     "contacts",
     "contact-picker",
+    "picker",
     "privacy",
     "zero-permission",
-    "turbomodule"
+    "no-permission",
+    "turbomodule",
+    "new-architecture",
+    "CNContactPickerViewController",
+    "ActivityResultContracts"
   ],
   "repository": "https://github.com/idanlevi1/react-native-pick-contact",
   "author": "idan levi <idanlevi2@gmail.com> (https://github.com/idanlevi1)",
